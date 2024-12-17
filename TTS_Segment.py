@@ -2,6 +2,7 @@
 from elevenlabs.client import ElevenLabs
 from elevenlabs import Voice, VoiceSettings, play
 import os
+
 talking_stick = os.getenv('TALKINGSTICK')
 
 client = ElevenLabs(api_key=talking_stick)
@@ -16,12 +17,12 @@ aivoice = Voice(
     )
 )
 
-input_text = input('What would you like me to say?: ')
-
-audio = client.generate(
+def Text_input_Speech_output(input_text):
+    global client
+    global aivoice
+    audio = client.generate(
     text=input_text,
     voice=aivoice
-)
-
-play(audio)
+    )
+    play(audio)
 

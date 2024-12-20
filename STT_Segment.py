@@ -2,7 +2,6 @@
 import azure.cognitiveservices.speech as azuresystem
 from azure.cognitiveservices.speech import AudioConfig
 import time
-import os
 
 # Response text
 final_text = ''
@@ -23,7 +22,7 @@ def cancelation_handler(event_args):
         print(f"Error: {event_args.error_details}")
 
 # Main function:
-def Azure_Speech_to_Text(azure_talkingstick, azure_serviceregion):
+def azure_speech_to_text(azure_talkingstick, azure_serviceregion):
     # Setup
     global final_text
     audio_config = AudioConfig(use_default_microphone=True)
@@ -41,7 +40,7 @@ def Azure_Speech_to_Text(azure_talkingstick, azure_serviceregion):
     print('Listening...')
     recognizer.start_continuous_recognition()   
     try:
-        time.sleep(10)
+        time.sleep(5)
     finally:
         recognizer.stop_continuous_recognition()
         print('Generating...')

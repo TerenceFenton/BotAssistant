@@ -2,6 +2,7 @@
 import azure.cognitiveservices.speech as azuresystem
 from azure.cognitiveservices.speech import AudioConfig
 import time
+from ChefBotMain import mic_thread_running
 
 # Response text
 final_text = ''
@@ -40,7 +41,8 @@ def azure_speech_to_text(azure_talkingstick, azure_serviceregion):
     print('Listening...')
     recognizer.start_continuous_recognition()   
     try:
-        time.sleep(5)
+        while mic_thread_running is True:
+            time.sleep(1)
     finally:
         recognizer.stop_continuous_recognition()
         print('Generating...')

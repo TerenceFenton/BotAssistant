@@ -1,5 +1,4 @@
 openai==1.58.1
-elevenlabs==1.13.5
 azure_cognitiveservices_speech==1.41.1
 pynput==1.7.7
 thread==2.0.5

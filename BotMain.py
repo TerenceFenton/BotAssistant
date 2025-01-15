@@ -7,7 +7,6 @@ from pynput import keyboard
 import thread
 import os
 
-
 # Api-key & Region setup for third-party system permissions (sourced as environment variables)
 azure_talkingstick = os.getenv('AZ_TALKINGSTICK')
 azure_serviceregion = os.getenv('AZ_REGION')
@@ -17,6 +16,8 @@ chatgpt_talkingstick = os.getenv('GPT_TALKINGSTICK')
 
 # Audio Input & AI Output Main
 def communicator_func():
+    # Global Objects
+    global history
 
     # Api-key & Region setup for third-party system permissions (sourced as environment variables)
     azure_talkingstick = os.getenv('AZ_TALKINGSTICK')
@@ -26,7 +27,7 @@ def communicator_func():
 
     # Main Process
     text = azure_speech_to_text(azure_talkingstick, azure_serviceregion)
-    reply = OpenAI_Codsworth.chatgpt_main(text, chatgpt_talkingstick)
+    reply, history = OpenAI_Codsworth.chatgpt_main(text, history, chatgpt_talkingstick)
     print(reply)
     TTS_Segment.text_input_speech_output(reply, elevenlabs_talkingstick)
 
@@ -34,6 +35,10 @@ def communicator_func():
 # Global Objects
 mic_thread_running = False
 final_text = ''
+history = ''
+
+# Main Thread
+mic_input = thread.Thread(target=communicator_func)
 
 # Recognizer Events
 def recognized_handler(event_args):
@@ -79,18 +84,32 @@ def azure_speech_to_text(azure_talkingstick, azure_serviceregion):
 
 # Pynput & Thread Listener
 def spacebar_checker(key):
-    global mic_thread_running  
+    # Global Objects
+    global mic_thread_running 
+
+    # Key Checker
     if key == keyboard.Key.space:
         if mic_thread_running is False:
+            # Start Thread
             mic_thread_running = True 
-            mic_input.start() 
-        else:
+            mic_input.start()
+
+        elif mic_thread_running is True:
+            # End Thread
             mic_thread_running = False
-            mic_input.join() 
-            return False  
+            thread_resetter()
+            print('Press Spacebar or esc')
 
-mic_input = thread.Thread(target=communicator_func)
+    elif key == keyboard.Key.esc:
+        # End Operation
+        return False  
 
+# Reset Main Thread
+def thread_resetter():
+    global mic_input
+    mic_input = thread.Thread(target=communicator_func)
+
+# Main
 print('Press Spacebar')
 with keyboard.Listener(on_press=spacebar_checker) as listener:
     listener.join()

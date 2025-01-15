@@ -4,6 +4,7 @@ from elevenlabs import Voice, VoiceSettings, play
 
 def text_input_speech_output(input_text, elevenlabs_talkingstick):
     # API-Key insert
+    print('hehe')
     client = ElevenLabs(api_key=elevenlabs_talkingstick)
     # Voice Customisation
     aivoice = Voice(
@@ -16,9 +17,12 @@ def text_input_speech_output(input_text, elevenlabs_talkingstick):
         )
     )
     # Audio Generation
-    audio = client.generate(
-    text=input_text,
-    voice=aivoice
-    )
-    play(audio)
+    try:
+        audio = client.generate(
+        text=input_text,
+        voice=aivoice
+        )
+        play(audio)
+    except:
+        print('something went wrong')
 

@@ -1,11 +1,11 @@
-import TTS_Segment
-import OpenAI_Codsworth
+import OpenAI_Character
 import azure.cognitiveservices.speech as azuresystem
 from azure.cognitiveservices.speech import AudioConfig
 import time
 from pynput import keyboard
 import thread
 import os
+
 
 # Api-key & Region setup for third-party system permissions (sourced as environment variables)
 azure_talkingstick = os.getenv('AZ_TALKINGSTICK')
@@ -22,14 +22,13 @@ def communicator_func():
     # Api-key & Region setup for third-party system permissions (sourced as environment variables)
     azure_talkingstick = os.getenv('AZ_TALKINGSTICK')
     azure_serviceregion = os.getenv('AZ_REGION')
-    elevenlabs_talkingstick = os.getenv('EL_TALKINGSTICK')
     chatgpt_talkingstick = os.getenv('GPT_TALKINGSTICK')
 
     # Main Process
     text = azure_speech_to_text(azure_talkingstick, azure_serviceregion)
-    reply, history = OpenAI_Codsworth.chatgpt_main(text, history, chatgpt_talkingstick)
+    reply, history = OpenAI_Character.chatgpt_main(text, history, chatgpt_talkingstick)
     print(reply)
-    TTS_Segment.text_input_speech_output(reply, elevenlabs_talkingstick)
+    azure_text_to_speech(azure_talkingstick, azure_serviceregion, reply)
 
 
 # Global Objects
@@ -37,8 +36,10 @@ mic_thread_running = False
 final_text = ''
 history = ''
 
+
 # Main Thread
 mic_input = thread.Thread(target=communicator_func)
+
 
 # Recognizer Events
 def recognized_handler(event_args):
@@ -55,7 +56,8 @@ def cancelation_handler(event_args):
     if event_args.reason == azuresystem.CancellationReason.Error:
         print(f"Error: {event_args.error_details}")
 
-# Main Azure function:
+
+# Azure Speech-to-Text:
 def azure_speech_to_text(azure_talkingstick, azure_serviceregion):
     # Setup
     global final_text
@@ -82,6 +84,26 @@ def azure_speech_to_text(azure_talkingstick, azure_serviceregion):
         return final_text
 
 
+# Azure Text-to-Speech 
+def azure_text_to_speech(azure_talkingstick, azure_serviceregion, text):
+    # Setup
+    speech_config = azuresystem.SpeechConfig(subscription=azure_talkingstick, region=azure_serviceregion)
+    speech_config.speech_synthesis_voice_name = "en-ZA-LukeNeural"
+    synthesizer = azuresystem.SpeechSynthesizer(speech_config=speech_config)
+
+    # Conver Text to Speech
+    result = synthesizer.speak_text_async(text).get()
+
+    # Check Result
+    if result.reason == azuresystem.ResultReason.SynthesizingAudioCompleted:
+        print("Speech synthesized for text [{}]".format(text))
+    elif result.reason == azuresystem.ResultReason.Canceled:
+        cancellation_details = result.cancellation_details
+        print("Speech synthesis canceled: {}".format(cancellation_details.reason))
+        if cancellation_details.reason == azuresystem.CancellationReason.Error:
+            print("Error details: {}".format(cancellation_details.error_details))
+
+
 # Pynput & Thread Listener
 def spacebar_checker(key):
     # Global Objects
@@ -104,10 +126,12 @@ def spacebar_checker(key):
         # End Operation
         return False  
 
+
 # Reset Main Thread
 def thread_resetter():
     global mic_input
     mic_input = thread.Thread(target=communicator_func)
+
 
 # Main
 print('Press Spacebar')

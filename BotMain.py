@@ -94,14 +94,10 @@ def azure_text_to_speech(azure_talkingstick, azure_serviceregion, text):
     # Conver Text to Speech
     result = synthesizer.speak_text_async(text).get()
 
-    # Check Result
-    if result.reason == azuresystem.ResultReason.SynthesizingAudioCompleted:
-        print("Speech synthesized for text [{}]".format(text))
-    elif result.reason == azuresystem.ResultReason.Canceled:
-        cancellation_details = result.cancellation_details
-        print("Speech synthesis canceled: {}".format(cancellation_details.reason))
-        if cancellation_details.reason == azuresystem.CancellationReason.Error:
-            print("Error details: {}".format(cancellation_details.error_details))
+    # Result Error Checker
+    if result.reason != result.Reason.SynthesizingAudioCompleted:
+        print(f"Error: {result.reason}")
+        print(f"Error details: {result.error_details}")
 
 
 # Pynput & Thread Listener
